@@ -1,0 +1,29 @@
+{
+    "name": "stevapple/lovelive-reserve",
+    "autoload": {
+        "psr-4": {
+            "LLReserve\\": [
+                "models"
+            ]
+        }
+    },
+    "type": "project",
+    "authors": [
+        {
+            "name": "stevapple",
+            "email": "stevapple@icloud.com"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^6.5",
+        "qcloud/cos-sdk-v5": "^2.4"
+    },
+    "require-dev": {
+        "rector/rector": "^0.12.5"
+    },
+    "config": {
+        "platform": {
+            "php": "7.2"
+        }
+    }
+}
