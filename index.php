@@ -19,8 +19,8 @@ function main_handler(object $event, object $context) {
     $capacity = intval($_ENV['RESERVE_CAPACITY']);
     // 0.4 活动信息
     $entity = $_ENV['ENTITY_NAME'];
-    $event_shortname = $_ENV['EVENT_SHORTNAME'];
-    $event_name = $_ENV['EVENT_FULLNAME'];
+    $event_title = $_ENV['EVENT_TITLE'];
+    $event_name = $_ENV['EVENT_NAME'];
     // 0.5 MySQL 配置
     $mysql_host = $_ENV['MYSQL_HOSTNAME'];
     $mysql_username = $_ENV['MYSQL_USERNAME'];
@@ -32,8 +32,8 @@ function main_handler(object $event, object $context) {
         'secretKey' => $_ENV['COS_SECRETKEY']
     ];
     $cos_region = $_ENV['COS_REGION'];
-    $cos_bucket = $_ENV['COS_BUCKETNAME'];
-    // 0.7 邮箱设置
+    $cos_bucket = $_ENV['COS_BUCKET'];
+    // 0.7 邮箱配置
     $mail_username = $_ENV['EMAIL_USERNAME'];
     $mail_password = $_ENV['EMAIL_PASSWORD'];
     $mail_address = $mail_username .'@qq.com';
@@ -51,7 +51,7 @@ function main_handler(object $event, object $context) {
         return error(400, '非法参数');
     }
 
-    // 3. 建立 MySQL 数据连接，更改事务隔离等级
+    // 3. 建立 MySQL 连接，更改事务隔离等级
     $mysqli = new mysqli($mysql_host, $mysql_username, $mysql_password, $database);
     $mysqli->query('SET session transaction isolation level read uncommitted');
 
@@ -78,11 +78,11 @@ function main_handler(object $event, object $context) {
 QQ号%s已于%s提交过申请，请勿重复报名。
 如未收到收款码邮件，请联系%s。
 response;
-        $response = sprintf($template, $qq, $time->format('Y年m月d日H:i'), $mail_address);
-        return failed($response);
+        $message = sprintf($template, $qq, $time->format('Y年m月d日H:i'), $mail_address);
+        return failed($message);
     }
 
-    // 6. 查询数据库，检查当前人数是否超额
+    // 6. 检查当前人数是否超额
     $row = $mysqli->query('SELECT SUM(quantity) FROM reserve WHERE (paid OR NOT expired) AND NOT flagged')->fetch_row();
     $reserved = intval($row[0]);
     if ($reserved + $quantity > $capacity)
@@ -96,7 +96,7 @@ response;
     ]);
     $paycode = $cos->getObjectUrl($cos_bucket, "payment/code_$quantity.jpg", "+$timelimit");
 
-    // 8. 向服务器提交一个增加请求
+    // 8. 向数据库提交一个增加请求
     $mysqli->autocommit(false);
     $insert = $mysqli->prepare('INSERT INTO reserve (qq, email, quantity) VALUES (?,?,?)');
     $insert->bind_param('ssi', $qq, $email, $quantity);
@@ -116,7 +116,7 @@ response;
     $mail->Port = 465;
     // 9.2 构造邮件正文
     $mail->isHTML(true);
-    $mail->Subject = $event_shortname .'报名成功';
+    $mail->Subject = $event_title .'报名成功';
     $mail->AltBody = '点击以下链接获取收款码，有效期'. $timelimit_desc ."，付款时请备注报名所使用的QQ号：\n". $paycode;
     $template = <<<email
 你已成功报名%s！<br />
@@ -136,14 +136,14 @@ email;
     $mysqli->commit();
     $mysqli->close();
 
-    // 11. 构造返回请求
+    // 11. 构造响应信息
     $template = <<<response
 报名成功！包含收款码的邮件已经发送到%s，请注意查收。
 付款时请备注QQ号%s，付款后请留意入群邀请。
 请务必在%s%s前完成付款，否则预订席位将被释放，且无法再次报名。
 response;
-    $response = sprintf($template, $email, $qq, $timezone_desc, $day_after->format('Y年m月d日H:i'));
+    $message = sprintf($template, $email, $qq, $timezone_desc, $day_after->format('Y年m月d日H:i'));
 
     // 12. 返回结果
-    return success($response);
+    return success($message);
 }

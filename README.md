@@ -1,8 +1,8 @@
 # lovelive-reserve
 
-`lovelive-reserve` 是由 LoveLive! Series presents COUNTDOWN LoveLive! 2021→2022 ～LIVE with a smile!～ 合肥线下观影会衍生的、为类似的小规模粉丝向活动提供付费报名的腾讯云函数（SCF）模板。
+`lovelive-reserve` 是由 LoveLive! Series Presents COUNTDOWN LoveLive! 2021→2022 〜LIVE with a smile!〜 合肥线下观影会衍生的、为类似的小规模粉丝向活动提供付费报名的腾讯云函数（SCF）模板。
 
-*本项目与 LoveLive! 商标及其所有人无关。*
+*本项目与 LoveLive! 商标及其持有人无关。*
 
 ## 项目结构
 
